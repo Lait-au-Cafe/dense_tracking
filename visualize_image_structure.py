@@ -50,6 +50,20 @@ plt.plot(x, y, label='blur (wing=10)')
 cv2.imshow("blur (wing=10)", blurred_image)
 cv2.waitKey(100)
 
+blurred_image = cv2.GaussianBlur(gray_image, (51, 51), 0)
+x = list(range(blurred_image.shape[1]))
+y = blurred_image[scan_line, x]
+plt.plot(x, y, label='blur (wing=25)')
+cv2.imshow("blur (wing=25)", blurred_image)
+cv2.waitKey(100)
+
+blurred_image = cv2.GaussianBlur(gray_image, (101, 101), 0)
+x = list(range(blurred_image.shape[1]))
+y = blurred_image[scan_line, x]
+plt.plot(x, y, label='blur (wing=50)')
+cv2.imshow("blur (wing=50)", blurred_image)
+cv2.waitKey(100)
+
 plt.legend()
 plt.show()
 
