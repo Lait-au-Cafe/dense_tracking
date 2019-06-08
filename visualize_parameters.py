@@ -85,15 +85,15 @@ for v in range(ref_frame.shape[0]):
         mat_b += -param * (liv_frame[v, u] - ref_frame[v, u])
 
 # Display parameters
-#fig = plt.figure(figsize=(18, 36))
-#axs = []
-#for i in range(8):
-#    axs.append(fig.add_subplot(4, 2, i + 1))
-#    axs[i].imshow(outputs[i], cmap='cool')
-#    axs[i].set_title(f"Param {i}")
-#
-#fig.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.95, wspace=0.)
-#plt.show()
+fig = plt.figure(figsize=(18, 36))
+axs = []
+for i in range(8):
+    axs.append(fig.add_subplot(4, 2, i + 1))
+    axs[i].imshow(outputs[i], cmap='cool')
+    axs[i].set_title(f"Param {i}")
+
+fig.subplots_adjust(left=0.1, right=0.95, bottom=0.1, top=0.95, wspace=0.)
+plt.show()
 
 print(mat_A)
 print()
@@ -124,5 +124,5 @@ for v in range(ref_frame.shape[0]):
 
         synth_frame[v, u] = liv_frame[y, x] or ref_frame[v, u]
 
-cv2.imshow("Synthesized Frame", synth_frame.astype(np.uint8))
-cv2.waitKey(0)
+#cv2.imshow("Synthesized Frame", synth_frame.astype(np.uint8))
+#cv2.waitKey(0)
