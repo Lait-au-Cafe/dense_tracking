@@ -42,9 +42,9 @@ gen_mat = liealg.se
 dim_param = gen_mat.shape[0]
 est_mat = np.identity(3)
 depth: np.float64 = 1.0e-20
-error: np.float64 = 0.
 for k in range(5):
     print(f"Iteration #{k}")
+    error: np.float64 = 0.
 
     mat_A = np.zeros((dim_param, dim_param), dtype=np.float64)
     mat_b = np.zeros((dim_param), dtype=np.float64)
