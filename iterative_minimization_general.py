@@ -38,7 +38,7 @@ key =cv2.waitKey(100)
 # Iterative Minimization (desirably). 
 #================================================
 
-gen_mat = liealg.se
+gen_mat = liealg.sl
 dim_param = gen_mat.shape[0]
 est_mat = np.identity(3)
 depth: np.float64 = 1.0e-20
@@ -58,7 +58,7 @@ for k in range(5):
             Iu = (ref_frame[v, u + 1] - ref_frame[v, u - 1]) / 2 # 255:-255
             Iv = (ref_frame[v + 1, u] - ref_frame[v - 1, u]) / 2 # 255:-255
 
-            param = np.array([Iu, Iv, -(u * Iu + v * Iv) / depth]) \
+            param = np.array([-Iu, -Iv, (u * Iu + v * Iv) / depth]) \
                         @ gen_mat \
                         @ np.array([u, v, 1])
 
@@ -74,7 +74,7 @@ for k in range(5):
     print("mat_b")
     print(mat_b)
     x = np.linalg.solve(mat_A, mat_b)
-#    x *= -1 # invert
+    x *= -1 # invert
     print("x")
     print(x)
 
