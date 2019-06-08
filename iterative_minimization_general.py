@@ -42,6 +42,7 @@ gen_mat = liealg.se
 dim_param = gen_mat.shape[0]
 est_mat = np.identity(3)
 depth: np.float64 = 1.0e-20
+error: np.float64 = 0.
 for k in range(5):
     print(f"Iteration #{k}")
 
@@ -63,6 +64,10 @@ for k in range(5):
 
             mat_A +=  param.reshape(-1, 1) * param
             mat_b += -param * (liv_frame[y, x] - ref_frame[v, u])
+            error += 0.5 * (liv_frame[y, x] - ref_frame[v, u]) ** 2
+
+    print("error")
+    print(error)
 
     print("mat_A")
     print(mat_A)
