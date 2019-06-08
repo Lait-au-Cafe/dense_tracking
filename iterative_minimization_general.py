@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from utils import Sampler, BorderAccessMode
+from utils import liealg
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset_path")
@@ -31,21 +32,24 @@ cv2.imshow(f"Reference Frame ", ref_frame.astype(np.uint8))
 cv2.imshow(f"Live Frame ", liv_frame.astype(np.uint8))
 cv2.imshow(f"Synthesized Frame ", synth_colored_frame.astype(np.uint8))
 
-key =cv2.waitKey(0)
-if key == ord('q'): exit(0)
+key =cv2.waitKey(100)
 
-proj_mat = np.identity(3)
-weight: np.float32 = 1 / 10000
-#weight: np.float32 = 1.0e+10
-#weight: np.float64 = 1.0e+20
+#================================================
+# Iterative Minimization (desirably). 
+#================================================
+
+gen_mat = liealg.se
+dim_param = gen_mat.shape[0]
+est_mat = np.identity(3)
+depth: np.float64 = 1.0e-20
 for k in range(5):
     print(f"Iteration #{k}")
 
-    mat_A = np.zeros((8, 8), dtype=np.float64)
-    mat_b = np.zeros((8), dtype=np.float64)
+    mat_A = np.zeros((dim_param, dim_param), dtype=np.float64)
+    mat_b = np.zeros((dim_param), dtype=np.float64)
     for v in range(ref_frame.shape[0]):
         for u in range(ref_frame.shape[1]):
-            warped_coord = proj_mat @ np.array([u, v, 1])
+            warped_coord = est_mat @ np.array([u, v, 1])
             x, y = warped_coord[:-1] / warped_coord[-1]
             x, y = int(x), int(y)
             if liv_frame[y, x] is None: break
@@ -53,16 +57,9 @@ for k in range(5):
             Iu = (ref_frame[v, u + 1] - ref_frame[v, u - 1]) / 2 # 255:-255
             Iv = (ref_frame[v + 1, u] - ref_frame[v - 1, u]) / 2 # 255:-255
 
-            param = np.array([
-                    Iu, 
-                    Iv, 
-                    v * Iu, 
-                    u * Iv, 
-                    u * Iu - v * Iv, 
-                    -v * Iv - weight * (u * Iu + v * Iv), 
-                    -weight * u * (u * Iu + v * Iv), 
-                    -weight * v * (u * Iu + v * Iv), 
-                ])
+            param = np.array([Iu, Iv, -(u * Iu + v * Iv) / depth]) \
+                        @ gen_mat \
+                        @ np.array([u, v, 1])
 
             mat_A +=  param.reshape(-1, 1) * param
             mat_b += -param * (liv_frame[y, x] - ref_frame[v, u])
@@ -72,14 +69,19 @@ for k in range(5):
     print("mat_b")
     print(mat_b)
     x = np.linalg.solve(mat_A, mat_b)
-    x *= -1 # invert
-    proj_mat = proj_mat @ np.array([
-            [1 + x[4], x[2], x[0]], 
-            [x[3], 1 - x[4] - x[5], x[1]], 
-            [x[6], x[7], 1 + x[5]]
-        ])
-    print("proj_mat")
-    print(proj_mat)
+#    x *= -1 # invert
+    print("x")
+    print(x)
+
+    alg_mat = np.zeros((3, 3), dtype=np.float64)
+    for i in range(dim_param):
+        alg_mat += x[i] * gen_mat[i]
+
+    grp_mat = np.identity(3) + alg_mat
+
+    est_mat = est_mat @ grp_mat
+    print("est_mat")
+    print(est_mat)
 
 
     # Display merged image
@@ -88,7 +90,7 @@ for k in range(5):
     warped_frame = np.empty_like(ref_frame)
     for v in range(ref_frame.shape[0]):
         for u in range(ref_frame.shape[1]):
-            warped_coord = proj_mat @ np.array([u, v, 1])
+            warped_coord = est_mat @ np.array([u, v, 1])
             x, y = warped_coord[:-1] / warped_coord[-1]
             x, y = int(x), int(y)
 
