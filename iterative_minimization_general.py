@@ -59,9 +59,7 @@ for k in range(5):
             warped_coord = est_mat @ np.array([u, v, 1])
             x, y = warped_coord[:-1] / warped_coord[-1]
             x, y = int(x), int(y)
-            if liv_frame[y, x] is None: 
-                print(f"({u}, {v}) => ({x}, {y})")
-                break
+            if liv_frame[y, x] is None: continue
 
             Iu = (ref_frame[v, u + 1] - ref_frame[v, u - 1]) / 2 # 255:-255
             Iv = (ref_frame[v + 1, u] - ref_frame[v - 1, u]) / 2 # 255:-255
@@ -111,8 +109,6 @@ for k in range(5):
         ))
     cp.cuda.Stream.null.synchronize()
 
-    cv2.imshow(f"Reference Frame #{k}", ref_frame.astype(np.uint8))
-    cv2.imshow(f"Live Frame #{k}", liv_frame.astype(np.uint8))
     cv2.imshow(f"Synthesized Frame #{k}", synth_colored_frame.get().astype(np.uint8))
     
     key =cv2.waitKey(0)
