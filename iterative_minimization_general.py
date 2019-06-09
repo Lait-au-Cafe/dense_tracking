@@ -114,23 +114,6 @@ for k in range(5):
     cv2.imshow(f"Reference Frame #{k}", ref_frame.astype(np.uint8))
     cv2.imshow(f"Live Frame #{k}", liv_frame.astype(np.uint8))
     cv2.imshow(f"Synthesized Frame #{k}", synth_colored_frame.get().astype(np.uint8))
-
-#    synth_frame = np.empty_like(ref_frame)
-#    synth_colored_frame = np.empty((ref_frame.shape[0], ref_frame.shape[1], 3), dtype=np.float32)
-#    warped_frame = np.empty_like(ref_frame)
-#    for v in range(ref_frame.shape[0]):
-#        for u in range(ref_frame.shape[1]):
-#            warped_coord = est_mat @ np.array([u, v, 1])
-#            x, y = warped_coord[:-1] / warped_coord[-1]
-#            x, y = int(x), int(y)
-#
-#            synth_frame[v, u] = liv_frame[y, x] or ref_frame[v, u]
-#            synth_colored_frame[v, u] = (liv_frame[y, x] or 0, ref_frame[v, u], 0)
-#            warped_frame[v, u] = liv_frame[y, x] or 0
-#
-#    cv2.imshow(f"Reference Frame #{k}", ref_frame.astype(np.uint8))
-#    cv2.imshow(f"Warped Live Frame #{k}", warped_frame.astype(np.uint8))
-#    cv2.imshow(f"Synthesized Frame #{k}", synth_colored_frame.astype(np.uint8))
     
     key =cv2.waitKey(0)
     if key == ord('q'): break
