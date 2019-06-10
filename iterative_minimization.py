@@ -46,12 +46,41 @@ key =cv2.waitKey(100)
 
 gen_mat = liealg.sl
 dim_param = gen_mat.shape[0]
-est_mat = np.identity(3)
+est_mat = np.identity(3, dtype=np.float32)
 depth: np.float64 = 1.0e-20
 for k in range(5):
     print(f"Iteration #{k}")
-    error: np.float64 = 0.
 
+    #================================================
+    # on GPU
+    #================================================
+    d_error = cp.array([0.], dtype=np.float64)
+    d_mat_A = cp.zeros((dim_param, dim_param), dtype=np.float64)
+    d_mat_b = cp.zeros((dim_param), dtype=np.float64)
+
+    kernel.step_minimization(dimGrid, dimBlock, (
+            cp.asarray(liv_frame), cp.asarray(ref_frame), 
+            ref_frame.shape[1], ref_frame.shape[0], 
+            cp.asarray(est_mat), cp.asarray(gen_mat), dim_param, 
+            d_mat_A, d_mat_b, d_error
+        ))
+
+    np.set_printoptions(linewidth=100000)
+    print("d_error")
+    print(d_error.get())
+    print("d_mat_A")
+    print(d_mat_A.get())
+    print("d_mat_b")
+    print(d_mat_b.get())
+
+    d_x = cp.linalg.solve(d_mat_A, d_mat_b)
+    d_x *= -1 # invert
+    print("d_x")
+    print(d_x.get())
+    #================================================
+    # on CPU
+    #================================================
+    error: np.float64 = 0.
     mat_A = np.zeros((dim_param, dim_param), dtype=np.float64)
     mat_b = np.zeros((dim_param), dtype=np.float64)
     for v in range(ref_frame.shape[0]):
@@ -74,15 +103,16 @@ for k in range(5):
 
     print("error")
     print(error)
-
     print("mat_A")
     print(mat_A)
     print("mat_b")
     print(mat_b)
+
     x = np.linalg.solve(mat_A, mat_b)
     x *= -1 # invert
     print("x")
     print(x)
+    #================================================
 
     alg_mat = np.zeros((3, 3), dtype=np.float64)
     for i in range(dim_param):

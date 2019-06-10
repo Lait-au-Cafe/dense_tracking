@@ -34,7 +34,7 @@ sl = np.array([
     [   [0, 0, 0], 
         [0, 0, 0], 
         [0, 1, 0], ], 
-    ], dtype=np.float64)
+    ], dtype=np.float32)
 
 # Special Euclidian Group [Transform Matrix]
 se = np.array([
@@ -49,7 +49,7 @@ se = np.array([
     [   [0,-1, 0], 
         [1, 0, 0], 
         [0, 0, 0], ], 
-    ], dtype=np.float64)
+    ], dtype=np.float32)
 
 # Affine Group [Affine Matrix]
 affine = np.array([
@@ -76,4 +76,4 @@ affine = np.array([
     [   [0, 0, 0], 
         [0, 1, 0], 
         [0, 0, 0], ], 
-    ], dtype=np.float64)
+    ], dtype=np.float32)
