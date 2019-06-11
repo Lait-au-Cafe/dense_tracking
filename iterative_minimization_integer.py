@@ -63,10 +63,10 @@ for k in range(5):
     kernel.step_minimization_integer(dimGrid, dimBlock, (
             cp.asarray(liv_frame.astype(np.int32)), cp.asarray(ref_frame.astype(np.int32)), 
             ref_frame.shape[1], ref_frame.shape[0], 
-            cp.asarray(est_mat), cp.asarray(gen_mat), dim_param, 
+            cp.asarray(est_mat.astype(np.float32)), cp.asarray(gen_mat), dim_param, 
             d_mat_A, d_mat_b, d_error
         ))
-#    cupy.cuda.Stream.null.synchronize()
+#    cp.cuda.Stream.null.synchronize()
 
     np.set_printoptions(linewidth=100000)
     print("d_error")

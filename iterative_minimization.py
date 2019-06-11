@@ -61,7 +61,7 @@ for k in range(5):
     kernel.step_minimization(dimGrid, dimBlock, (
             cp.asarray(liv_frame), cp.asarray(ref_frame), 
             ref_frame.shape[1], ref_frame.shape[0], 
-            cp.asarray(est_mat), cp.asarray(gen_mat), dim_param, 
+            cp.asarray(est_mat.astype(np.float32)), cp.asarray(gen_mat), dim_param, 
             d_mat_A, d_mat_b, d_error
         ))
 

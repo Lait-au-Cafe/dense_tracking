@@ -178,10 +178,8 @@ void step_minimization_integer(
     if(tx >= width || ty >= height) { return; }
 
     const float wz =  WarpMat[6] * tx + WarpMat[7] * ty + WarpMat[8];
-//    const int   wx = (WarpMat[0] * tx + WarpMat[1] * ty + WarpMat[2]) / wz;
-//    const int   wy = (WarpMat[3] * tx + WarpMat[4] * ty + WarpMat[5]) / wz;
-    const int   wx = tx;
-    const int   wy = ty;
+    const int   wx = (WarpMat[0] * tx + WarpMat[1] * ty + WarpMat[2]) / wz;
+    const int   wy = (WarpMat[3] * tx + WarpMat[4] * ty + WarpMat[5]) / wz;
 
     if(wx < 0 || wx >= width || wy < 0 || wy >= height) { return; }
 
