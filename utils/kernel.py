@@ -127,3 +127,91 @@ void step_minimization(
     }
 }
 ''', 'step_minimization')
+
+step_minimization_integer = cp.RawKernel(r'''
+inline __device__ long long int __ull_as_ll(
+    unsigned long long int val
+) {
+    return *(long long int*)&val;
+}
+
+inline __device__ unsigned long long int __ll_as_ull(
+    long long int val
+) {
+    return *(unsigned long long int*)&val;
+}
+
+inline __device__ long long int atomicAdd(
+    long long int* addr, 
+    long long int val
+) {
+    unsigned long long int* addr_as_ull = (unsigned long long int*)addr;
+    unsigned long long int old = *addr_as_ull;
+    unsigned long long int assumed;
+    do {
+        assumed = old;
+        old = atomicCAS(
+            addr_as_ull, 
+            assumed, 
+            __ll_as_ull(val + __ull_as_ll(assumed)));
+    } while (assumed != old); // Note: uses int comparison to avoid hang-in-case of NaN
+
+    return __ull_as_ll(old);
+}
+
+extern "C" __global__
+void step_minimization_integer(
+    const int* LivImg, 
+    const int* RefImg, 
+    int width, 
+    int height, 
+    const float* WarpMat, 
+    float* GenMat, 
+    int dim_param, 
+    long long int* MatA, 
+    long long int* Matb, 
+    long long int* Error
+) {
+    const int tx = blockIdx.x*blockDim.x + threadIdx.x;
+    const int ty = blockIdx.y*blockDim.y + threadIdx.y;
+
+    if(tx >= width || ty >= height) { return; }
+
+    const float wz =  WarpMat[6] * tx + WarpMat[7] * ty + WarpMat[8];
+//    const int   wx = (WarpMat[0] * tx + WarpMat[1] * ty + WarpMat[2]) / wz;
+//    const int   wy = (WarpMat[3] * tx + WarpMat[4] * ty + WarpMat[5]) / wz;
+    const int   wx = tx;
+    const int   wy = ty;
+
+    if(wx < 0 || wx >= width || wy < 0 || wy >= height) { return; }
+
+    int diff = LivImg[wx + wy * width] - RefImg[tx + ty * width];
+    long long int err = diff * diff;
+    atomicAdd(Error, err);
+
+    const long long int scale = 1.0;
+    int Ix = RefImg[min(tx + 1, width - 1) + ty * width] - RefImg[max(tx - 1, 0) + ty * width];
+    int Iy = RefImg[tx + min(ty + 1, height -1) * width] - RefImg[tx + max(ty - 1, 0) * width];
+    int Iz = (tx * Ix + ty * Iy) * scale;
+
+    int i, j;
+    float* gen_mat;
+    long long int elm_A, elm_b;
+    long long int param[9]; // dim_param <= 9
+    for(i = 0; i < dim_param; i++) {
+        gen_mat = GenMat + 9 * i;
+        param[i] =  - Ix * (gen_mat[0] * tx + gen_mat[1] * ty + gen_mat[2]) 
+                    - Iy * (gen_mat[3] * tx + gen_mat[4] * ty + gen_mat[5]) 
+                    + Iz * (gen_mat[6] * tx + gen_mat[7] * ty + gen_mat[8]);
+        elm_b = -diff * param[i];
+        atomicAdd(&Matb[i], elm_b);
+    }
+
+    for(j = 0; j < dim_param; j++) {
+        for(i = 0; i < dim_param; i++) {
+            elm_A = param[i] * param[j];
+            atomicAdd(&MatA[i + j * dim_param], elm_A);
+        }
+    }
+}
+''', 'step_minimization_integer')
